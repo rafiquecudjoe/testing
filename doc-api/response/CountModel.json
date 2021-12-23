@@ -1,0 +1,15 @@
+{
+  "title" : "Count Schema",
+  "type" : "object",
+  "required": [
+    "errors"
+  ],
+  "properties": {
+    "praise": {
+      "type": "object"
+    },
+    "prevPraise": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+@startuml 褒めるカウントのクラス図
+
+class User {
+  slackAccount
+
+  'いるか？
+  DisplayName 
+  
+  ' レコードカウントすればいらない
+  褒めた回数
+  褒められた回数
+}
+
+' そろそろ名前つけたい
+class Praise {
+  from_user_id
+  to_user_id
+  message
+  time_stamp
+}
+' toが複数いる場合はどうする？別レコードにする？
+' いちどに複数人をほめられうようにするか
+' 
+
+@enduml

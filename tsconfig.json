@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "lib": ["es2019"],
+    "removeComments": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es2019",
+    "outDir": "lib",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules/**/*", ".vscode/**/*", "./**/*.test.ts"]
+}

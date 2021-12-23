@@ -1,0 +1,18 @@
+{
+  "title" : "Total Schema",
+  "type" : "object",
+  "required": [
+    "errors"
+  ],
+  "properties": {
+    "start": {
+      "type": "number"
+    },
+    "end": {
+      "type": "number"
+    },
+    "count": {
+      "type": "number"
+    }
+  }
+}

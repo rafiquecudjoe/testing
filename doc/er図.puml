@@ -1,0 +1,131 @@
+@startuml ER図
+
+entity team {
+  id [PK]
+  --
+  name
+}
+
+note bottom of team
+  請求はチームに紐づく
+endnote
+
+entity "localUser" {
+  id [PK]
+  --
+  teamId [FK]
+  globalUserId [FK]
+  name
+  icon
+  is_bot // botユーザーはカウントしない？
+}
+
+note bottom of localUser
+  表示名やアイコンはworkspaceごとに異なる
+  ログイントークンどこで管理する？
+endnote
+
+entity globalUser {
+  id [PK]
+  --
+}
+
+note bottom of globalUser
+  いらない？
+  teamplanetのアカウントとしての管理は？
+endnote
+
+entity "通知" as notification {
+  id
+  --
+  workspaceId ?
+  type
+  body
+}
+
+entity "既読" as read {
+  id [PK]
+  --
+  通知ID [FK]
+  ユーザーID [FK]
+  read
+}
+
+entity "褒めた" as praise {
+  id [PK]
+  --
+  teamId
+  body
+  いつ
+}
+
+entity "発言" as chat {
+  id [PK]
+  --
+  teamId [FK]
+  channelId
+  globalUserId
+  body
+  timestamp
+  sentiment
+}
+
+' channelIdはグローバルでユニーク？
+
+entity "communication" {
+  id
+  --
+  teamId
+  fromglobalUser
+  toglobalUser
+  timestamp: datetime
+}
+
+entity "advise" {
+  id
+  body
+}
+
+entity "sentiment" {
+  id
+  --
+  chatId
+  magnitude: -1.0（ネガティブ）～1.0（ポジティブ)
+  score:指定したテキストの全体的な感情の強度 0.0～+inf
+}
+
+entity "levelUpProgress" {
+  id
+  --
+  workspaceId
+  stage
+  startAt
+  endAt
+  activeMembers
+}
+
+note bottom of advise 
+  key、判定をどうする？
+  db側にロジックをもたせたくない？
+  平均投稿回数が多いときのアドバイス、
+  褒めた数が少ないときのアドバイスなど
+  app側で配列管理するのも違和感
+endnote
+
+entity "slackTokens" {
+  userId
+  teamId
+  token
+  expiresAt
+}
+
+team ||-r-o{ localUser
+globalUser ||-l-|{ localUser
+localUser --o{ communication
+localUser --o{ praise
+localUser --o{ read
+localUser --o{ chat
+read }|--|| notification
+team ||--o{ levelUpProgress
+chat ||--|| sentiment
+@enduml

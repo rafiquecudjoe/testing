@@ -1,0 +1,65 @@
+@startuml ドメイン図
+
+package team {
+  object team {
+  id
+  users
+  admins
+}
+
+  object teamProfile {
+    id
+    name
+    icon
+  }
+
+  object customer {
+    email
+    address
+    tel
+    isVerified
+    plan
+  }
+
+  object payment {
+    amount
+    status
+    created
+  }
+  note bottom of payment 
+    請求日のチームの人数によって額を決める
+    支払い開始日の管理は？
+    無料期間だとどうする？
+    statusは'estimate' 'incharge' 'paid'
+    一ヶ月ごとに作成
+  endnote
+}
+
+object admin {
+  mail
+  password
+}
+
+note bottom of admin 
+  adminはslackのアドレスじゃなくていい
+  slackのユーザーとの対応は取る必要ある？
+endnote
+
+object user {
+  userId
+  username
+  icon
+}
+
+note bottom of user
+  ・ユーザーIDはチーム内で一意になる
+  ・チームの切り替えを考えるとグローバルユーザーが必要
+endnote
+
+team }--|{ admin
+teamProfile ||-|| team
+team ||--|| customer
+customer ||-{ payment
+team -- user
+
+@enduml

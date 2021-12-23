@@ -1,0 +1,9 @@
+@startuml 褒め言葉の判定シーケンス
+
+User -> Slack: メッセージを投稿
+Slack -> Lambda: イベントAPIにてWebhookを起動
+Lambda -> AutoML: 褒め言葉が含まれているか判定
+AutoML --> Lambda: 検出結果を返却
+Lambda -> Aurora: 結果を書き込み
+
+@enduml

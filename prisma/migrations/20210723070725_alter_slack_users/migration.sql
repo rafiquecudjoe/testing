@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `slack_users` MODIFY `id` INTEGER NOT NULL AUTO_INCREMENT;

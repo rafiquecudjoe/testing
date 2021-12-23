@@ -1,0 +1,154 @@
+@startuml ドメイン図
+
+package team {
+  object team {
+  id
+  userIds // いる？
+}
+
+  object teamProfile {
+    id
+    name
+    icon
+  }
+
+  object slackToken {
+    accessToken
+    botId
+    botUserId
+  }
+
+  object customer {
+    email
+    address
+    tel
+    isVerified
+    plan
+  }
+
+  object payment {
+    amount
+    status
+    created
+  }
+  note bottom of payment 
+    チームの人数によって請求する
+  endnote
+}
+
+
+
+
+
+object user {
+  userId
+  username
+  icon
+}
+
+note bottom of user
+  ・プロファイルのみ扱う
+  ・slackのアカウントと一対一
+  ・idも共有する？
+  ・表示名、アイコンは連携時にslackから取得する
+  ・ユーザーIDはチーム内で一意になる
+  ・チームの切り替えを考えるとグローバルユーザーが必要
+endnote
+
+object praise {
+  発言ユーザーID
+  tesmId
+  body 本文
+  いつ
+}
+
+note bottom of team
+  ユーザーとワークスペースは多対多？
+endnote
+
+object notification {
+  通知ID
+  タイプ
+  既読
+}
+
+note bottom of notification
+  - levelupするとワークスペースの各ユーザーに通知がいく
+  - 既読は各ユーザーで管理
+endnote
+
+object levelProgress {
+  id
+  tesmId
+  start
+  end
+  参加人数
+  stage
+}
+
+note bottom of levelProgress
+  - メインビジュアルで使う情報
+  - レベルアップ時にレコード作成
+  - レベル等の情報を管理する
+  - レベルアップした瞬間に今の状態を計算して通知することはできるが
+  - 前のレベルの情報は覚えておく必要がある
+  - イベントログ
+endnote
+
+
+object communication {
+  fromUserId
+  toUserIds
+  発言日時
+}
+
+object chat {
+  id
+  team
+  channel
+  userId
+  body 本文
+  感情分析結果
+}
+
+object analysis {
+  teamId
+  活性指数
+  平均投稿文字数
+  投稿頻度
+  アドバイス
+}
+
+note bottom of analysis 
+  活性指数は永続化数するのか？
+  毎回計算する？
+endnote
+
+note bottom of chat 
+  弊社環境ではslackに投稿されたものはすべて保存する
+  GCPの感情分析結果を記録する
+endnote
+
+teamProfile ||-|| team
+team ||--|| slackToken
+team ||--|| customer
+customer ||-{ payment
+team - chat
+user - chat
+user <- praise
+' team - praise
+communication - user
+team -- user
+user - notification
+team - levelProgress
+
+
+
+note bottom of communication
+現状だとコミュニケーションの密度は表示されない？
+一度全員にメンションしたらOKになる
+コミュニケーションの方向は気にしていないのでAtoBとBtoAは同じものとして集計する？
+一旦別にする
+endnote
+
+@enduml

@@ -1,0 +1,124 @@
+openapi: 3.0.0
+components:
+  schemas:
+    CountResponse:
+      title: Count Schema
+      type: object
+      required:
+        - errors
+      properties:
+        praise:
+          type: object
+        prevPraise:
+          type: object
+    TotalResponse:
+      title: Total Schema
+      type: object
+      required:
+        - errors
+      properties:
+        start:
+          type: number
+        end:
+          type: number
+        count:
+          type: number
+    ErrorResponse:
+      title: Error Schema
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          type: boolean
+          additionalProperties: true
+        stackTrace:
+          type: object
+          description: A object contain detail error response
+          properties:
+            message:
+              description: Error message
+              type: string
+          additionalProperties: true
+  securitySchemes: {}
+info:
+  title: TeamPlanet API
+  description: This is TeamPlanet API
+  version: '1'
+servers: []
+paths:
+  /count:
+    get:
+      operationId: count
+      summary: Count praise
+      parameters:
+        - name: start
+          in: query
+          description: Start date should be unix(number)
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: number
+        - name: end
+          in: query
+          description: End date should be unix(number)
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: number
+        - name: period
+          in: query
+          description: Period should be string
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+              - month
+      responses:
+        '200':
+          description: A user object along with generated API Keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CountResponse'
+        '500':
+          description: Status 500 Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /total:
+    get:
+      operationId: total
+      summary: 指定された期間内の褒めた数の総量
+      parameters:
+        - name: start
+          in: query
+          description: Start date should be unix(number)
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: number
+        - name: end
+          in: query
+          description: End date should be unix(number)
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A user object along with generated API Keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalResponse'
+        '500':
+          description: Status 500 Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

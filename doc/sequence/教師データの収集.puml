@@ -1,0 +1,13 @@
+@startuml 教師データの収集
+
+User -> Slack: メッセージを投稿
+Slack -> Lambda: イベントAPIにてWebhookを起動
+Lambda -> AutoML: 褒め言葉が含まれているか判定
+AutoML --> Lambda: 検出結果を返却
+Lambda -> Slack: ランダム抽出で抽出結果があっているかを表示
+Slack -> User: botからのメンションで通知
+User -> Slack: OK, NG（の場合は正しい結果)を入力
+Slack -> Lambda: Webhookを起動
+Lambda -> Aurora: 結果を書き込み
+
+@enduml

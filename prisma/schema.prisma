@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DB_URL")
+}
+
+model praises {
+  id          Int     @id @default(autoincrement())
+  teamId      String? @db.VarChar(255)
+  teamDomain  String? @db.VarChar(255)
+  channelId   String? @db.VarChar(255)
+  channelName String? @db.VarChar(255)
+  userId      String? @db.VarChar(255)
+  userName    String? @db.VarChar(255)
+  command     String? @db.VarChar(255)
+  text        String? @db.VarChar(255)
+  apiAppId    String? @db.VarChar(255)
+  responseUrl String? @db.VarChar(255)
+  triggerId   String? @db.VarChar(255)
+  createdAt   Int?
+  updatedAt   Int?
+  score       Float?  @db.Float
+  magnitude   Float?  @db.Float
+}
+
+model reactions {
+  id        Int       @id @default(autoincrement())
+  date      DateTime? @db.DateTime(0)
+  name      String?   @db.VarChar(255)
+  count     Int?
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model slack_users {
+  id        Int      @id @default(autoincrement())
+  userId    String?  @db.VarChar(255)
+  teamId    String?  @db.VarChar(255)
+  name      String?  @db.VarChar(255)
+  realName  String?  @db.VarChar(255)
+  isBot     Boolean? @default(false)
+  phone     String?  @db.VarChar(255)
+  createdAt Int?
+  updatedAt Int?
+}
+
+model userProfile {
+  userId    String           @db.VarChar(32)
+  teamId    String           @db.VarChar(32)
+  name      String
+  icon      String? // imageUrl
+  createdAt Int?
+  updatedAt Int?
+  user      communications[] @relation(name: "sourceUser")
+  target    communications[] @relation(name: "targetUser")
+
+  @@unique([userId, teamId])
+}
+
+model slackToken {
+  teamId       String   @unique @db.VarChar(32)
+  botUserId    String   @db.VarChar(32)
+  botId        String   @db.VarChar(32)
+  accessToken  String   @db.VarChar(255)
+  refreshToken String   @db.VarChar(255)
+  expiresAt    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// https://api.slack.com/methods/bots.info
+// botUserIdはusers.infoなどslackuserとしてのapiを叩くために必要
+// botIdはbot用のenvent: bot_message などに必要
+// botIdはteamごとに１つでもいいのでは？
+
+model sentiment {
+  // GCPの感情分析の結果を保存する
+  id        Int     @id @default(autoincrement())
+  text      String
+  score     Float
+  magnitude Float
+  praise    praise?
+}
+
+// TODO: @relationを明記するか判断
+// https://www.prisma.io/docs/concepts/components/prisma-schema/relations/#the-relation-attribute
+model praise {
+  id          Int        @id @default(autoincrement())
+  teamId      String     @db.VarChar(255)
+  channelId   String     @db.VarChar(255)
+  userId      String     @db.VarChar(255)
+  text        String     @db.VarChar(255)
+  sentimentId Int?       @unique
+  sentiment   sentiment? @relation(fields: [sentimentId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model praiseDestination {
+  praiseId  String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([praiseId, userId])
+}
+
+model level_up_progress {
+  id            Int    @id @default(autoincrement())
+  teamId        String @db.VarChar(255)
+  stage         Int
+  startAt       Int
+  endAt         Int
+  activeMembers Int
+  createdAt     Int
+  updatedAt     Int
+}
+
+model notifications {
+  id        Int     @id @default(autoincrement())
+  teamId    String? @db.VarChar(255)
+  type      String? @db.VarChar(255)
+  body      String? @db.VarChar(255)
+  createdAt Int?
+  reads     reads[]
+}
+
+model reads {
+  id             Int           @id @default(autoincrement())
+  notificationId Int
+  notification   notifications @relation(fields: [notificationId], references: [id])
+  userId         String?       @db.VarChar(255)
+  readAt         Int?
+}
+
+model communications {
+  id        Int         @id @default(autoincrement())
+  teamId    String?     @db.VarChar(32)
+  sourceId  String      @db.VarChar(32)
+  user      userProfile @relation(name: "sourceUser", fields: [sourceId], references: [userId])
+  targetId  String      @db.VarChar(32)
+  target    userProfile @relation(name: "targetUser", fields: [targetId], references: [userId])
+  createdAt Int
+}
+
+model teamProfile {
+  teamId    String  @unique
+  name      String  @db.VarChar(32)
+  icon      String? @db.Text
+  createdAt Int?
+  updatedAt Int?
+}

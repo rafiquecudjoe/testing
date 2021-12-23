@@ -1,0 +1,32 @@
+{
+  "title": "Error Schema",
+  "type": "object",
+  "required": [
+    "errors"
+  ],
+  "properties": {
+    "errors": {
+      "$ref": "#/definitions/errors"
+    },
+    "stackTrace": {
+      "$ref": "#/definitions/stackTrace"
+    }
+  },
+  "definitions": {
+    "errors": {
+      "type": "boolean",
+      "additionalProperties": true
+    },
+    "stackTrace": {
+      "type": "object",
+      "description": "A object contain detail error response",
+      "properties": {
+        "message": {
+          "description": "Error message",
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

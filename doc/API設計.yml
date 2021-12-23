@@ -1,0 +1,610 @@
+openapi: 3.0.3
+info:
+  title: teamplanet
+  version: 1.0.0
+  description: teamplanetのserverlesss api
+servers:
+  - url: 'https://wl2xuv4v5b.execute-api.ap-northeast-1.amazonaws.com/develop'
+    description: develop環境（開発者が動作確認用に自由にデプロイ可能)
+paths:
+  /login:
+    get:
+      summary: login to app
+      description: Slackの認可画面のURLを返す。フロントはURLにトランジションを行う
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  redirectUrl:
+                    type: string
+                    example: 'http://example.com/'
+        '500':
+          description: ワークスペースが登録されていないとき
+  /slack/events:
+    post:
+      summary: Slackのポストイベント処理
+      description: chatテーブルの保存、感情分析、praiseテーブルの保存、levelupイベントの保存？
+      responses:
+        '200':
+          description: 成功
+  /notifications:
+    get:
+      summary: 未読通知の一覧取得
+      description: ユーザーの未読通知一覧
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      required:
+                        - id
+                        - type
+                        - alreadyRead
+                        - previousStageStart
+                        - previousStageSEnd
+                        - activeMembers
+                        - averagePraises
+                        - averageWords
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                        type:
+                          type: string
+                          minLength: 1
+                        alreadyRead:
+                          type: boolean
+                        previousStageStart:
+                          type: string
+                          minLength: 1
+                        previousStageSEnd:
+                          type: string
+                          minLength: 1
+                        activeMembers:
+                          type: number
+                        averagePraises:
+                          type: number
+                        averageWords:
+                          type: number
+                required:
+                  - notifications
+                x-examples:
+                  example-1:
+                    notifications:
+                      - id: abc
+                        type: levelup
+                        alreadyRead: false
+                        previousStageStart: '2021-04-01'
+                        previousStageSEnd: '2021-04-11'
+                        activeMembers: 20
+                        averagePraises: 5.2
+                        averageWords: 150
+  '/notifications/{id}/markAsRead':
+    post:
+      summary: 指定したお知らせを既読にする
+      description: alreadyReadテーブルにレコードを追加
+      responses:
+        '204':
+          description: OK
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+        description: 通知id
+  /register/workspace:
+    summary: ワークスペースに登録する。
+  /auth:
+    summary: callback?
+  /me:
+    get:
+      summary: 自身のユーザー名やアイコンを取得する
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  icon:
+                    type: string
+  /timeLine:
+    get:
+      summary: 褒め言葉を取得。デフォルトでは最新から10件
+      description: 'praise, chatテーブルからの取得'
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: number
+                      example: 20200101
+                    body:
+                      description: 褒めた投稿の本文
+                      type: string
+                    fromUser:
+                      description: 褒めた人のユーザー情報
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        icon:
+                          type: string
+                        name:
+                          type: string
+                    toUsers:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          icon:
+                            type: string
+                          name:
+                            type: string
+  /communication:
+    get:
+      summary: コミュニケーション情報の取得
+      responses:
+        '200':
+          description: 取得成功
+  /analysis:
+    get:
+      summary: 現在のSlack活用度を返す
+      responses:
+        '200':
+          description: 取得成功
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    teamId: AAAA
+                    score:
+                      current: 41
+                      prev: 32
+                    averagePraises:
+                      current: 10
+                      prev: 20
+                    averageWords:
+                      current: 100.5
+                      prev: 80
+                    averageFrequency:
+                      current: 1.3
+                      prev: 2.1
+                    advise: 良い調子ですね
+                properties:
+                  teamId:
+                    type: string
+                    minLength: 1
+                    description: チームID
+                  score:
+                    type: object
+                    required:
+                      - current
+                      - prev
+                    description: 活性指数
+                    properties:
+                      current:
+                        type: integer
+                        description: 現在
+                      prev:
+                        type: integer
+                        description: 先週
+                  averagePraises:
+                    type: object
+                    required:
+                      - current
+                      - prev
+                    description: 平均の褒めた数
+                    properties:
+                      current:
+                        type: number
+                      prev:
+                        type: number
+                  averageWords:
+                    type: object
+                    required:
+                      - current
+                      - prev
+                    description: 平均投稿文字数
+                    properties:
+                      current:
+                        type: number
+                      prev:
+                        type: number
+                  averageFrequency:
+                    type: object
+                    required:
+                      - current
+                      - prev
+                    description: 平均投稿頻度
+                    properties:
+                      current:
+                        type: number
+                      prev:
+                        type: number
+                  advise:
+                    type: string
+                    minLength: 1
+                required:
+                  - teamId
+                  - score
+                  - averagePraise
+                  - averageWords
+                  - averageFrequency
+                  - advise
+              examples:
+                example-1:
+                  value:
+                    teamId: AAAA
+                    score:
+                      current: 70
+                      prev: 41
+                    averageWords:
+                      current: 101.1
+                      prev: 120.5
+                    averageFrequency:
+                      current: 1.4
+                      prev: 2.1
+                    averagePraises:
+                      current: 11
+                      prev: 6
+                    advise: 良い調子ですね
+      operationId: getAnalysis
+  /terraforming:
+    get:
+      summary: テラフォーミング機能の進捗を取得する
+      description: テラフォーミング開始から現在までの褒めた数を集計する
+      responses:
+        '200':
+          description: 現在のテラフォーミング状態
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    now: 0
+                    complete: 100
+                    currentPhase:
+                      - index: 1
+                        threshold: 100
+                      - index: 2
+                        threshold: 200
+                      - index: 3
+                        threshold: 500
+                      - index: 4
+                        threshold: 1000
+                properties:
+                  now:
+                    type: number
+                    description: 現在の褒めた数
+                  complete:
+                    type: number
+                    description: レベルアップに必要な褒めた数
+                  currentPhase:
+                    type: integer
+                    description: 現在のレベル
+                required:
+                  - now
+                  - complete
+                  - currentPhase
+              examples:
+                レベル1のとき:
+                  value:
+                    now: 0
+                    complete: 100
+                    currentPhase: 1
+  /count:
+    get:
+      operationId: count
+      summary: 褒めた数グラフのためのカウント取得
+      parameters:
+        - name: summarizedBy
+          in: query
+          description: '集計単位 ''day'', ''week'', ''month'''
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            example: '"day"'
+        - name: start
+          in: query
+          description: Start date formatted 'YYYY-MM-DD'
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            format: date
+        - name: count
+          in: query
+          description: 取得するデータの数
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A user object along with generated API Keys
+          content:
+            application/json:
+              examples:
+                日ごと:
+                  value:
+                    summarizedBy: day
+                    praises:
+                      - at: '2020-01-01'
+                        sum: 10
+                      - at: '2020-01-02'
+                        sum: 10
+                      - at: '2020-01-03'
+                        sum: 10
+                      - at: '2020-01-04'
+                        sum: 10
+                      - at: '2020-01-05'
+                        sum: 10
+                      - at: '2020-01-06'
+                        sum: 10
+                      - at: '2020-01-07'
+                        sum: 12
+                週ごと:
+                  value:
+                    summarizedBy: week
+                    praises:
+                      - at: '2020-01-01'
+                        sum: 10
+                      - at: '2020-01-08'
+                        sum: 10
+                      - at: '2020-01-15'
+                        sum: 10
+                      - at: '2020-01-22'
+                        sum: 10
+                      - at: '2020-01-29'
+                        sum: 10
+                      - at: '2020-02-05'
+                        sum: 10
+                月ごと:
+                  value:
+                    summarizedBy: month
+                    praises:
+                      - at: '2020-01-01'
+                        sum: 10
+                      - at: '2020-02-01'
+                        sum: 10
+                      - at: '2020-03-01'
+                        sum: 10
+                      - at: '2020-04-01'
+                        sum: 10
+                      - at: '2020-05-01'
+                        sum: 10
+                      - at: '2020-06-01'
+                        sum: 10
+              schema:
+                description: ''
+                type: object
+                x-examples:
+                  example-1:
+                    summarizedBy: day
+                    praises:
+                      - at: '2020-01-01'
+                        sum: 10
+                      - at: '2020-01-02'
+                        sum: 10
+                      - at: '2020-01-03'
+                        sum: 10
+                      - at: '2020-01-04'
+                        sum: 10
+                      - at: '2020-01-05'
+                        sum: 10
+                      - at: '2020-01-06'
+                        sum: 10
+                      - at: '2020-01-07'
+                        sum: 12
+                properties:
+                  summarizedBy:
+                    type: string
+                    minLength: 1
+                  praises:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          minLength: 1
+                          description: 'week, monthの場合は開始日'
+                          format: date
+                        sum:
+                          type: number
+                          minimum: 0
+                      required:
+                        - at
+                        - sum
+                required:
+                  - summarizedBy
+                  - praises
+        '400':
+          description: Bad Request validation error
+        '500':
+          description: Status 500 Response
+  /admin/login:
+    post:
+      tags:
+        - admin/auth
+      summary: adminログイン
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: invalid email or password
+  /admin/logout:
+    get:
+      tags:
+        - admin/auth
+      summary: adminログアウト
+      responses:
+        '200':
+          description: 成功
+  /admin/resetPassword:
+    post:
+      tags:
+        - admin/account
+      summary: パスワードリセット
+      responses:
+        '200':
+          description: 成功
+  /admin/account:
+    get:
+      tags:
+        - admin/account
+      summary: admin情報取得
+      responses:
+        '200':
+          description: 成功
+    put:
+      tags:
+        - admin/account
+      summary: admin情報更新
+      responses:
+        '200':
+          description: 成功
+    delete:
+      tags:
+        - admin/account
+      summary: admin削除
+      responses:
+        '200':
+          description: 成功
+  /admin/account/cancel:
+    get:
+      tags:
+        - admin/account
+      summary: サービスを解約する
+      responses:
+        '200':
+          description: 成功
+  /admin/payments:
+    get:
+      tags:
+        - admin/payments
+      summary: 過去の支払い情報を取得する
+      responses:
+        '200':
+          description: 成功
+  /admin/payments/current:
+    get:
+      tags:
+        - admin/payments
+      summary: 現在の支払い見込みを取得する
+      responses:
+        '200':
+          description: 成功
+  /admin/payments/:
+    put:
+      tags:
+        - admin/payments
+      summary: 支払い情報を更新する
+      responses:
+        '200':
+          description: 成功
+  /admin/users:
+    get:
+      tags:
+        - admin/users
+      summary: 管理者を取得する
+      responses:
+        '200':
+          description: 成功
+    post:
+      tags:
+        - admin/users
+      summary: 管理者をする
+      responses:
+        '200':
+          description: 成功
+  /admin/users/{userId}:
+    delete:
+      tags:
+        - admin/users
+      summary: 管理者からユーザーを削除する
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+  /admin/workspaces:
+    get:
+      tags:
+        - admin/workspaces
+      summary: 現在連携している Slack ワークスペースの情報取得
+      responses:
+        '200':
+          description: 成功
+    post:
+      tags:
+        - admin/workspaces
+      summary: あたらしく Slack ワークスペースと連携する
+      responses:
+        '200':
+          description: 成功
+  /admin/workspaces/{workspaceId}:
+    delete:
+      tags:
+        - admin/workspaces
+      summary: Slack ワークスペースと連携解除する
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
